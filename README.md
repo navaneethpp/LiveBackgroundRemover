@@ -28,7 +28,7 @@ pip install opencv-python rembg Pillow
 ## Usage
 Run the script to start capturing video:
 ```sh
-python camera.py
+python3 main.py
 ```
 The video feed will be displayed in a window, and the background will be removed in real-time. Press q to stop capturing.
 
