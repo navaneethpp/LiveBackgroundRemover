@@ -20,7 +20,7 @@ To run this script, you need:
 To get started, clone the repository and install the necessary dependencies:
 
 ```sh
-git clone <repository_URL>
+git clone https://github.com/navaneethpp/LiveBackgroundRemover.git
 cd <repository_folder>
 pip install opencv-python rembg Pillow
 ```
