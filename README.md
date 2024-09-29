@@ -1,6 +1,3 @@
-# LiveBackgroundRemover
-This project demonstrates a Python script that captures video using the default camera, removes the background in real-time, and saves the captured video to a file. It uses OpenCV to handle video capture and the rembg library to remove the background from each frame.
-
 # Camera Capture with Background Removal
 
 This project demonstrates a Python script that captures video from the default camera, removes the background in real-time, and saves the captured video to a file. It uses OpenCV to handle video capture and the `rembg` library to remove the background from each frame.
@@ -26,3 +23,30 @@ To get started, clone the repository and install the necessary dependencies:
 git clone <repository_URL>
 cd <repository_folder>
 pip install opencv-python rembg Pillow
+```
+
+## Usage
+Run the script to start capturing video:
+```sh
+python camera.py
+```
+The video feed will be displayed in a window, and the background will be removed in real-time. Press q to stop capturing.
+
+## How it Works
+- Video Capture: The script uses OpenCV to capture frames from the default camera.
+- Background Removal: The rembg library is used to remove the background from each frame.
+- Video Saving: The modified frames are saved to an output file (output.mp4) using OpenCV's VideoWriter.
+
+## Notes
+- Ensure that your camera is properly connected and accesible
+- Background removal might require good lighting conditions for better results
+
+## License
+This project is licensed under the GNU General Public License v3.0.
+
+## Contributing
+Feel free to contribute by submitting issues or pull requests.
+
+## Acknowledgments
+- Thanks to the developers of OpenCV for making video capture simple
+- Special thanks to rembg for the easy-to-use background removal.
