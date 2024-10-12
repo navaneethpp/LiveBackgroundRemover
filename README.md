@@ -1,20 +1,21 @@
 # Camera Capture with Background Removal
 
-This project demonstrates a Python script that captures video from the default camera, removes the background in real-time, and saves the captured video to a file. It uses OpenCV to handle video capture and the `rembg` library to remove the background from each frame.
+This Python application uses OpenCV, rembg, and PyQt6 to provide a graphical user interface for applying background images and blur effects to a live video feed captured from your camera. The background removal is powered by the rembg library, allowing dynamic replacement with a selected background image. Users can also control the level of blur applied to the background and capture processed frames as images.
 
-## Features
-- Captures video from the default camera.
-- Removes the background from the live video feed using the `rembg` library.
-- Saves the video output to an MP4 file.
-- Displays a real-time preview with background removal.
+## FeaturesCaptures video from the default camera.
+- Live camera feed with real-time background removal.
+- Option to replace the removed background with a custom image.
+- Adjustable background blur levels (from 0 to 5).
+- Capture and save processed frames as PNG images.
+- Simple GUI built using PyQt6.
 
 ## Requirements
 To run this script, you need:
-- Python 3.x
-- The following Python libraries:
-  - `opencv-python`
-  - `rembg`
-  - `Pillow`
+- Python 3.7 or higher
+- OpenCV
+- rembg
+- PyQt6
+- Pillow(PIL)
 
 ## Installation
 To get started, clone the repository and install the necessary dependencies:
@@ -24,29 +25,40 @@ git clone https://github.com/navaneethpp/LiveBackgroundRemover.git
 cd <repository_folder>
 pip install opencv-python rembg Pillow
 ```
+## How to Use
+1. Select a Background Image:
+   - Click on the `Select Background Image` button to choose an image file that will be used as the background
+2. Adjust the Blur Level:
+   - Use the `Select Blur Level` dropdown to adjust the blur effect applied to the background
+3. Start/Stop the Camera:
+   - Click on the `Start Camera` button to start the live camera feed.
+   - The `Stop Camera` button stops the feed when clicked.
+5. Capture an Image:
+   - After starting camera, you can click on the `Capture Image` button to save the current processed frame as a PNG file. The image will be saved in the same directory as the script with an automatic filename based on the timestamp.
+  
+## Dependencies
+The project uses the following libraries:
+- **OpenCV**: For capturing live video feed and processing images.
+- **rembg**: To remove the background from the camera feed.
+- **PyQt6**: To create the graphical user interface (GUI).
+- **Pillow(PIL)**: To handle image formats for background removal.
+- **NumPy**: For handling image arrays and numeric operations.
 
-## Usage
-Run the script to start capturing video:
-```sh
-python3 main.py
-```
-The video feed will be displayed in a window, and the background will be removed in real-time. Press q to stop capturing.
+Install all dependencies by running:
+`pip install opencv-python rembg PyQt6 pillow numpy`
 
-## How it Works
-- Video Capture: The script uses OpenCV to capture frames from the default camera.
-- Background Removal: The rembg library is used to remove the background from each frame.
-- Video Saving: The modified frames are saved to an output file (output.mp4) using OpenCV's VideoWriter.
+## Privacy Disclaimer
+The `rembg` library, which is used for background removal, may make use of third-party remote servers for processing images. This means that when using this application, your video feed or images may be uploaded to external servers for the purpose of removing the background
 
-## Notes
-- Ensure that your camera is properly connected and accesible
-- Background removal might require good lighting conditions for better results
+Please be aware of the following:
+- **Internet Access:** The `rembg` package requires an active internet connection for background removal.
+- **Data Privacy:** If privacy is a concern, be cautious about the type of image or videos you process, as they might be transmitted over the internet.
+- **Local Processing:** For environments where privacy is critical, consider using alternative local models or tools for background removal that don't rely on external servers.
+
+By using this application, you acknowledge and accept that the remg package may send images to external servers for processing.
 
 ## License
 This project is licensed under the GNU General Public License v3.0.
 
-## Contributing
-Feel free to contribute by submitting issues or pull requests.
-
-## Acknowledgments
-- Thanks to the developers of OpenCV for making video capture simple
-- Special thanks to rembg for the easy-to-use background removal.
+## Contribution
+If you would like to contribute, feel free to create a pull request or open an issue for bugs or featur suggestions.
