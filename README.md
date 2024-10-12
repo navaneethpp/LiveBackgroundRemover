@@ -62,3 +62,7 @@ This project is licensed under the GNU General Public License v3.0.
 
 ## Contribution
 If you would like to contribute, feel free to create a pull request or open an issue for bugs or featur suggestions.
+
+## Disclaimer on Privacy
+
+This project uses the `rembg` package, which requires an internet connection for background removal. Be aware that processing images through external services may involve privacy concerns regarding the data being transmitted. I, as the project owner, am not responsible for any privacy issues that arise due to external packages or services. If you encounter any privacy-related concerns, please report them, and I will address them accordingly.
