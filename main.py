@@ -21,12 +21,22 @@ def apply_blur(image, blur_level):
         return cv2.GaussianBlur(image, (blur_level * 2 + 1, blur_level * 2 + 1), 0)
     return image
 
+# Function to detect available cameras
+def detect_cameras():
+    available_cameras = []
+    for index in range(10):  # Check the first 10 potential camera indices
+        cap = cv2.VideoCapture(index)
+        if cap.isOpened():
+            available_cameras.append(f"Camera {index}")
+            cap.release()
+    return available_cameras
+
 # Create a PyQt application
 app = QApplication(sys.argv)
 
 # Create the main window
 window = QWidget()
-window.setWindowTitle("Background Selector with Blur")
+window.setWindowTitle("Background Selector with Blur and Camera Selection")
 layout = QVBoxLayout()
 
 # Button to select background image
@@ -44,6 +54,20 @@ layout.addWidget(blur_label)
 blur_combo = QComboBox()
 blur_combo.addItems(["No Blur", "1", "2", "3", "4", "5"])  # Adding blur levels
 layout.addWidget(blur_combo)
+
+# Camera selection dropdown
+camera_label = QLabel("Select Camera:")
+layout.addWidget(camera_label)
+
+camera_combo = QComboBox()
+layout.addWidget(camera_combo)
+
+# Populate the camera dropdown with detected cameras
+available_cameras = detect_cameras()
+if available_cameras:
+    camera_combo.addItems(available_cameras)
+else:
+    camera_combo.addItem("No cameras found")
 
 # QLabel to display the video feed
 video_label = QLabel()
@@ -97,21 +121,18 @@ class CameraThread(QThread):
     frame_signal = pyqtSignal(np.ndarray)
     finished_signal = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, camera_index=0):  # Add camera index as a parameter
         super().__init__()
         self._is_running = False
+        self.camera_index = camera_index
 
     def run(self):
         self._is_running = True
-        # Open the default camera
-        cam = cv2.VideoCapture(0)
-
-        # Check if the camera opened successfully
+        cam = cv2.VideoCapture(self.camera_index)  # Use the selected camera index
         if not cam.isOpened():
-            print("Error: Could not access the camera.")
+            print(f"Error: Could not access camera {self.camera_index}.")
             return
 
-        # Get the default frame width and height
         frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
         frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -119,62 +140,48 @@ class CameraThread(QThread):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter('output_with_bg.mp4', fourcc, 20.0, (frame_width, frame_height))
 
-        # Run the video processing loop
         while self._is_running:
             ret, frame = cam.read()
-
             if not ret:
-                print("Error: Could not read frame from camera.")
+                print(f"Error: Could not read frame from camera {self.camera_index}.")
                 break
 
             global processed_frame  # Use global variable to store the processed frame
 
-            # Convert the frame to RGB format for rembg processing
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame_pil = Image.fromarray(frame_rgb)
 
-            # Remove the background
             try:
                 removed_bg = remove(frame_pil)
             except Exception as e:
                 print(f"Error during background removal: {e}")
                 break
 
-            # Convert the processed PIL image back to OpenCV format (keeping color channels correct)
             frame_no_bg = cv2.cvtColor(np.array(removed_bg), cv2.COLOR_RGBA2BGRA)
 
-            # Check if a background image is selected
             if background_image_path and os.path.isfile(background_image_path):
-                # Open and read the background image using OpenCV
                 bg_image = cv2.imread(background_image_path)
 
-                # Check if the background image is loaded properly
                 if bg_image is None:
                     print(f"Error: Could not read the image from the path '{background_image_path}'.")
                     break
 
-                # Resize the background image to match the frame size
                 bg_image_resized = resize_background(bg_image, frame_width, frame_height)
 
-                # Get the selected blur level
                 blur_text = blur_combo.currentText()
                 if blur_text == "No Blur":
                     blur_level = 0
                 else:
                     blur_level = int(blur_text)
 
-                # Apply the selected blur to the background
                 bg_image_blurred = apply_blur(bg_image_resized, blur_level)
 
-                # Extract the alpha channel as a mask
                 if frame_no_bg.shape[-1] == 4:  # Check if the image has an alpha channel
-                    alpha_channel = frame_no_bg[:, :, 3]  # Extract the alpha channel
-                    mask = alpha_channel / 255.0  # Normalize the mask to range [0, 1]
+                    alpha_channel = frame_no_bg[:, :, 3]
+                    mask = alpha_channel / 255.0
 
-                    # Extract the RGB channels without the alpha
                     frame_rgb_no_alpha = frame_no_bg[:, :, :3]
 
-                    # Blend the frame with the blurred background using the mask
                     fg_part = (mask[:, :, None] * frame_rgb_no_alpha).astype(np.uint8)
                     bg_part = ((1 - mask)[:, :, None] * bg_image_blurred).astype(np.uint8)
                     final_frame = cv2.add(fg_part, bg_part)
@@ -183,16 +190,11 @@ class CameraThread(QThread):
             else:
                 final_frame = frame
 
-            # Write the frame with the new background to the output file
             out.write(final_frame)
-
-            # Emit the processed frame
             self.frame_signal.emit(final_frame)
 
-            # Store the processed frame for capture
             processed_frame = final_frame.copy()
 
-        # Release the capture and writer objects
         cam.release()
         out.release()
         self.finished_signal.emit()
@@ -207,15 +209,12 @@ camera_thread = CameraThread()
 def start_camera():
     global camera_thread
     if not camera_thread.isRunning():
-        camera_thread = CameraThread()
+        selected_camera_index = camera_combo.currentIndex()  # Get the selected camera index
+        camera_thread = CameraThread(selected_camera_index)  # Pass the selected index
 
-    # Connect the frame signal to the display function
     camera_thread.frame_signal.connect(display_frame)
-
-    # Connect the finished signal to update the UI
     camera_thread.finished_signal.connect(on_camera_stopped)
 
-    # Start the camera thread
     camera_thread.start()
     stop_camera_button.setEnabled(True)
     start_camera_button.setEnabled(False)
@@ -233,29 +232,22 @@ def on_camera_stopped():
 
 # Function to display the frame in the QLabel within the GUI
 def display_frame(frame):
-    # Convert frame from BGR to RGB format
     rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # Convert the RGB image to QImage
     height, width, channel = rgb_image.shape
     bytes_per_line = 3 * width
     qt_image = QImage(rgb_image.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
 
-    # Display the QImage in the QLabel
     video_label.setPixmap(QPixmap.fromImage(qt_image))
 
 # Function to capture the current processed frame as an image
 def capture_image():
     global processed_frame
     if processed_frame is not None:
-        # Get the current directory where the script is running
         current_directory = os.path.dirname(os.path.abspath(__file__))
-
-        # Generate an automatic filename using the current timestamp
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         save_path = os.path.join(current_directory, f"processed_image_{timestamp}.png")
 
-        # Save the current processed frame
         cv2.imwrite(save_path, processed_frame)
         QMessageBox.information(window, "Image Saved", f"Image has been saved as '{save_path}'.")
     else:
