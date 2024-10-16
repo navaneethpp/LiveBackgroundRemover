@@ -8,6 +8,7 @@ This Python application uses OpenCV, rembg, and PyQt6 to provide a graphical use
 - Adjustable background blur levels (from 0 to 5).
 - Capture and save processed frames as PNG images.
 - Simple GUI built using PyQt6.
+- Camera Selection Option
 
 ## Requirements
 To run this script, you need:
